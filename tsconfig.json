@@ -1,0 +1,63 @@
+{
+  "compilerOptions": {
+    // A modern target that supports newer features. "ES2022" or "ESNext" are both common.
+    "target": "ES2022",
+
+    // Include DOM libraries for browser-based code, plus "ESNext" for newer JS features.
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+
+    // Allow plain JS files, and optionally check them with TypeScript (see checkJs below).
+    "allowJs": true,
+    "checkJs": true,
+
+    // Don't error out on the first type error – but do fail the build if there's any error.
+    "skipLibCheck": true,
+
+    // Enable strict type-checking and consistent conventions.
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": true,
+
+    // Don't emit compiled files; Next.js handles transpilation/bundling.
+    "noEmit": true,
+
+    // Interop + synthetic imports are important for ESM imports to work seamlessly.
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // "esnext" is typical for Next.js.
+    // If you encounter ESM issues, you could experiment with "NodeNext" (Node 16+).
+    "module": "esnext",
+    "moduleResolution": "node",
+
+    // Allows importing .json files.
+    "resolveJsonModule": true,
+
+    // Ensures each file is treated as its own module (needed by Next).
+    "isolatedModules": true,
+
+    // Preserves JSX so Next.js can handle it.
+    "jsx": "preserve",
+
+    // Speeds up incremental builds.
+    "incremental": true,
+
+    // Base directory for imports and a sample path alias for '@/*' → './src/*'.
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    // Allows Next.js-specific lint suggestions in your editor (if supported).
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  // Include all TS/TSX files in the project plus custom config files, etc.
+  "include": [".eslintrc.cjs", "next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.cjs", "**/*.mjs", ".next/types/**/*.ts"],
+
+  // Exclude the node_modules folder to speed up compilation and avoid conflicts.
+  "exclude": ["node_modules"]
+}
