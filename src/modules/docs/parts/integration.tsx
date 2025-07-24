@@ -61,7 +61,7 @@ const WEBHOOKS = [
   "merchant_id": "merchant_67890",
   "event_date": "2025-07-21T15:30:00.000Z",
   "order_id": "order_12345",
-  "checkout_id": 4,
+  "checkout_id": "12345",
   "payment_amount": "10000",
   "payment_date": "2025-07-21T15:30:00.000Z"
 }`,
@@ -75,7 +75,7 @@ const WEBHOOKS = [
   "merchant_id": "merchant_67890",
   "event_date": "2025-07-21T15:30:00.000Z",
   "order_id": "order_12345",
-  "checkout_id": 4,
+  "checkout_id": "12345",
   "payment_amount": "10000",
   "payment_date": "2025-07-21T15:30:00.000Z"
 }`,
@@ -174,14 +174,17 @@ const WebhookCard: React.FC<{
   const [flipped, setFlipped] = useState(false)
   const [orderId, setOrderId] = useState('')
   const [paymentAmount, setPaymentAmount] = useState('')
+  const [merchantId, setMerchantId] = useState('')
   const [status, setStatus] = useState('')
   const { token, setToken } = useApiToken()
 
   const hasRequiredFields = () => {
     if (event === 'PAYMENT_SUCCESS' || event === 'PAYMENT_FAILED' || event === 'PAYOUT') {
       return (!!orderId && orderId != '') && (!!paymentAmount && paymentAmount != '')
-    } else if (event === 'MERCHANT_STATUS' || event === 'CONTRACT_STATUS_CHANGE') {
+    } else if ( event === 'CONTRACT_STATUS_CHANGE') {
       return (!!orderId && orderId != '') && (!!status && status != '')
+    } else if (event === 'MERCHANT_STATUS') {
+      return (!!merchantId && merchantId != '') && (!!status && status != '')
     }
     return true
   }
@@ -205,7 +208,7 @@ const WebhookCard: React.FC<{
         >
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold text-payva-purple-700">{title}</h3>
-            {event !== 'NEW_PURCHASE' && (
+            {(event !== 'NEW_PURCHASE' && event !== 'APPLICATION_DECLINED') && (
               <Button
                 onClick={() => setFlipped(true)}
                 variant="outline"
@@ -238,13 +241,13 @@ const WebhookCard: React.FC<{
           <div className="space-y-4">
             {(event === 'PAYMENT_SUCCESS' || event === 'PAYMENT_FAILED' || event === 'PAYOUT' || event === 'CONTRACT_STATUS_CHANGE' || event === 'MERCHANT_STATUS') ? (
               <>
-                <Input
+                {(event === 'PAYMENT_SUCCESS' || event === 'PAYMENT_FAILED' || event === 'PAYOUT' || event === 'CONTRACT_STATUS_CHANGE' ) &&<Input
                   type="text"
                   placeholder="Order ID"
                   value={orderId}
                   onChange={(e) => setOrderId(e.target.value)}
                   className="w-full border border-nuetral-300 p-2 rounded"
-                />
+                />}
                 {(event === 'PAYMENT_SUCCESS' || event === 'PAYMENT_FAILED' || event === 'PAYOUT') && (
                   <Input
                     type="number"
@@ -255,6 +258,14 @@ const WebhookCard: React.FC<{
                 />)}
 
                 {(event === 'MERCHANT_STATUS') && (
+                  <>
+                  <Input
+                    type="text"
+                    placeholder="Merchant ID"
+                    value={merchantId}
+                    onChange={(e) => setMerchantId(e.target.value)}
+                    className="w-full border border-nuetral-300 p-2 rounded"
+                  />
                   <Select
                     value={status}
                     onValueChange={(value) => setStatus(value)}
@@ -266,8 +277,11 @@ const WebhookCard: React.FC<{
                       <SelectItem value="APPROVED">Approved</SelectItem>
                       <SelectItem value="SUSPENDED">Suspended</SelectItem>
                       <SelectItem value="DECLINED">Declined</SelectItem>
+                      <SelectItem value="APPLICATION_STARTED">Application Started</SelectItem>
+                      <SelectItem value="APPLICATION_SUBMITTED">Application Submitted</SelectItem>
                     </SelectContent>
                   </Select> 
+                  </>
                 )}
 
                 { event === 'CONTRACT_STATUS_CHANGE' && (
@@ -309,9 +323,10 @@ const WebhookCard: React.FC<{
                   webhookType={event as PlatformWebhooksType}
                   disabled={hasRequiredFields()}
                   label="Trigger"
-                  orderId={orderId}
+                  orderId={orderId === '' ? undefined : orderId}
                   paymentAmount={paymentAmount}
                   status={status}
+                  merchantId={merchantId}
                 />
               </>
             ) : (

@@ -906,6 +906,7 @@ export type MockStatusChangePayload = {
   checkout_id: Scalars['String']['output']
   event_date: Scalars['String']['output']
   event_type: Scalars['String']['output']
+  merchant_id: Scalars['String']['output']
   old_status: Scalars['String']['output']
   order_id: Scalars['String']['output']
   plan_id: Scalars['String']['output']
@@ -2755,6 +2756,7 @@ export type MockWebhooksMutationVariables = Exact<{
   orderId?: InputMaybe<Scalars['String']['input']>
   paymentAmount?: InputMaybe<Scalars['String']['input']>
   status?: InputMaybe<Scalars['String']['input']>
+  merchantId?: InputMaybe<Scalars['String']['input']>
 }>
 
 export type MockWebhooksMutation = { __typename?: 'Mutation' } & {
@@ -2929,12 +2931,14 @@ export const MockWebhooksDocument = gql`
     $orderId: String
     $paymentAmount: String
     $status: String
+    $merchantId: String
   ) {
     mockWebhooks(
       webhookType: $webhookType
       orderId: $orderId
       paymentAmount: $paymentAmount
       status: $status
+      merchantId: $merchantId
     ) {
       merchant_status {
         event_type
@@ -3000,6 +3004,7 @@ export type MockWebhooksMutationFn = Apollo.MutationFunction<
  *      orderId: // value for 'orderId'
  *      paymentAmount: // value for 'paymentAmount'
  *      status: // value for 'status'
+ *      merchantId: // value for 'merchantId'
  *   },
  * });
  */

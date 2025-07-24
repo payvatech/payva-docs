@@ -30,8 +30,8 @@ export const PLATFORM_TOKENS = gql`
 `
 
 export const MOCK_WEBHOOKS_MUTATION = gql`
-  mutation MockWebhooks($webhookType: PlatformWebhooksType!, $orderId: String, $paymentAmount: String, $status: String) {
-    mockWebhooks(webhookType: $webhookType, orderId: $orderId, paymentAmount: $paymentAmount, status: $status) {
+  mutation MockWebhooks($webhookType: PlatformWebhooksType!, $orderId: String, $paymentAmount: String, $status: String, $merchantId: String) {
+    mockWebhooks(webhookType: $webhookType, orderId: $orderId, paymentAmount: $paymentAmount, status: $status, merchantId: $merchantId) {
       merchant_status {
         event_type
         event_date

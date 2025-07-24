@@ -13,9 +13,10 @@ interface MockWebhookButtonProps {
   paymentAmount?: string
   status?: string
   disabled?: boolean
+  merchantId?: string
 }
 
-const MockWebhookButton: React.FC<MockWebhookButtonProps> = ({ webhookType, label, orderId, paymentAmount, status, disabled }) => {
+const MockWebhookButton: React.FC<MockWebhookButtonProps> = ({ webhookType, label, orderId, paymentAmount, status, disabled, merchantId }) => {
   const { token } = useApiToken()
   const [mockWebhooksMutation, { data, loading, error }] = useMockWebhooksMutation()
   if (!data) console.log('there is no data')
@@ -26,7 +27,7 @@ const MockWebhookButton: React.FC<MockWebhookButtonProps> = ({ webhookType, labe
     setShowSuccess(false)
     console.log('orderId', orderId, 'paymentAmount', paymentAmount)
     void mockWebhooksMutation({
-      variables: { webhookType, orderId, paymentAmount, status },
+      variables: { webhookType, orderId, paymentAmount, status, merchantId },
       context: {
         headers: {
           'x-api-key': token,
@@ -41,7 +42,7 @@ const MockWebhookButton: React.FC<MockWebhookButtonProps> = ({ webhookType, labe
   
 
   return (
-    <div className="mt-4 flex justify-end">
+    <div className="mt-4 flex justify-end flex-col items-end">
       <Button
       className='flex justify-end'
         onClick={handleClick}
