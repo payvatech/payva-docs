@@ -25,33 +25,60 @@ export function useScrollToHash(offset = 16) {
 
 // Static webhook definitions
 export const CONTRACT_STATUS = {
-  IN_UNDERWRITING: 'IN_UNDERWRITING',
-  CREDIT_LOCKED: 'CREDIT_LOCKED',
-  APPROVED_PENDING_PAYMENT: 'APPROVED_PENDING_PAYMENT',
   ACTIVE: 'ACTIVE',
   ACTIVE_MODIFIED_PAYMENT: 'ACTIVE_MODIFIED_PAYMENT',
-  DEFAULTED: 'DEFAULTED',
-  PAID: 'PAID',
-  FAILED_PAYMENT: 'FAILED_PAYMENT',
-  IN_LEGAL: 'IN_LEGAL',
-  IN_COLLECTIONS: 'IN_COLLECTIONS',
-  IN_COLLECTIONS_PENDING_PAYMENT: 'IN_COLLECTIONS_PENDING_PAYMENT',
-  IN_COLLECTIONS_PAUSED_PAYMENT: 'IN_COLLECTIONS_PAUSED_PAYMENT',
-  CHARGEBACK: 'CHARGEBACK',
-  DUPLICATE: 'DUPLICATE',
-  DECLINED: 'DECLINED',
-  WRITE_OFF: 'WRITE_OFF',
   CANCELED: 'CANCELED',
-  ABANDONED_FORM: 'ABANDONED_FORM',
-  WENT_DARK: 'WENT_DARK',
-  EARLY_PAY_DISCOUNT: 'EARLY_PAY_DISCOUNT',
-  UNKNOWN: 'UNKNOWN',
+  CHARGEBACK: 'CHARGEBACK',
+  DEFAULTED: 'DEFAULTED',
+  DECLINED: 'DECLINED',
+  DUPLICATE: 'DUPLICATE',
+  FAILED_PAYMENT: 'FAILED_PAYMENT',
+  IN_COLLECTIONS: 'IN_COLLECTIONS',
+  IN_COLLECTIONS_PAUSED_PAYMENT: 'IN_COLLECTIONS_PAUSED_PAYMENT',
+  IN_COLLECTIONS_PENDING_PAYMENT: 'IN_COLLECTIONS_PENDING_PAYMENT',
+  PAID: 'PAID',
   REQUESTING_CANCELLATION: 'REQUESTING_CANCELLATION',
+  UNKNOWN: 'UNKNOWN',
 } as const;
 
 export type ContractStatus = typeof CONTRACT_STATUS[keyof typeof CONTRACT_STATUS];
 
 const WEBHOOKS = [
+  {
+    title: '🛒 New Purchase',
+    event: 'NEW_PURCHASE' as const,
+    description: 'Triggered when a new purchase is completed and the contract becomes active.',
+    sample: `{
+    "event_type": "NEW_PURCHASE",
+    "checkout_id": "12345",
+    "order_id": "order_12345",
+    "status": "ACTIVE",
+    "event_date": "2025-07-21T15:30:00.000Z",
+    "sales_tax": "400",
+    "total_before_sales_tax": "9500",
+    "merchant_id": "merchant_67890",
+    "plan": {
+      "period_payment_amount": "100",
+      "payment_frequency": "MONTHLY",
+      "number_of_payments": "12",
+      "total_amount": "1200"
+    }
+  }`,
+  },
+   {
+    title: '🚫 Customer Application Declined',
+    event: 'APPLICATION_DECLINED' as const,
+    description: 'Triggered when a customers application for a payment plan is declined.',
+    sample: `{
+    "event_type": "APPLICATION_DECLINED",
+    "merchant_id": "merchant_67890",
+    "status": "DECLINED",
+    "level": "Prime" | "Premium" | "Pro",
+    "order_id": "order_12345",
+    "platform_id": "platform_id_value",
+    "platform_url": "https://platform.url"
+  }`
+  },
   {
     title: '💳 Payment Success',
     event: 'PAYMENT_SUCCESS' as const,
@@ -123,42 +150,8 @@ const WEBHOOKS = [
   "level": "Premium"
 }`,
   },
-  {
-    title: '🚫 Application Declined',
-    event: 'APPLICATION_DECLINED' as const,
-    description: 'Triggered when an application is declined.',
-    sample: `{
-    "event_type": "APPLICATION_DECLINED",
-    "merchant_id": "merchant_67890",
-    "external_merchant_id": "EXTERNAL_MID",
-    "status": "DECLINED",
-    "level": "Prime" | "Premium" | "Pro",
-    "order_id": "order_12345",
-    "platform_id": "platform_id_value",
-    "platform_url": "https://platform.url"
-  }`
-  },
-  {
-    title: '🛒 New Purchase',
-    event: 'NEW_PURCHASE' as const,
-    description: 'Triggered when a new purchase is completed and the contract becomes active.',
-    sample: `{
-    "event_type": "NEW_PURCHASE",
-    "checkout_id": "12345",
-    "order_id": "order_12345",
-    "status": "ACTIVE",
-    "event_date": "2025-07-21T15:30:00.000Z",
-    "sales_tax": "400",
-    "total_before_sales_tax": "9500",
-    "merchant_id": "merchant_67890",
-    "plan": {
-      "period_payment_amount": "100",
-      "payment_frequency": "MONTHLY",
-      "number_of_payments": "12",
-      "total_amount": "1200"
-    }
-  }`,
-  },
+ 
+  
 ];
 
 type WebhookEvent = typeof WEBHOOKS[number]['event']
@@ -293,28 +286,20 @@ const WebhookCard: React.FC<{
                       <SelectValue placeholder="Select Contract Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="IN_UNDERWRITING">In Underwriting</SelectItem>
-                      <SelectItem value="CREDIT_LOCKED">Credit Locked</SelectItem>
-                      <SelectItem value="APPROVED_PENDING_PAYMENT">Approved Pending Payment</SelectItem>
                       <SelectItem value="ACTIVE">Active</SelectItem>
                       <SelectItem value="ACTIVE_MODIFIED_PAYMENT">Active Modified Payment</SelectItem>
-                      <SelectItem value="DEFAULTED">Defaulted</SelectItem>
-                      <SelectItem value="PAID">Paid</SelectItem>
-                      <SelectItem value="FAILED_PAYMENT">Failed Payment</SelectItem>
-                      <SelectItem value="IN_LEGAL">In Legal</SelectItem>
-                      <SelectItem value="IN_COLLECTIONS">In Collections</SelectItem>
-                      <SelectItem value="IN_COLLECTIONS_PENDING_PAYMENT">In Collections Pending Payment</SelectItem>
-                      <SelectItem value="IN_COLLECTIONS_PAUSED_PAYMENT">In Collections Paused Payment</SelectItem>
-                      <SelectItem value="CHARGEBACK">Chargeback</SelectItem>
-                      <SelectItem value="DUPLICATE">Duplicate</SelectItem>
-                      <SelectItem value="DECLINED">Declined</SelectItem>
-                      <SelectItem value="WRITE_OFF">Write Off</SelectItem>
                       <SelectItem value="CANCELED">Canceled</SelectItem>
-                      <SelectItem value="ABANDONED_FORM">Abandoned Form</SelectItem>
-                      <SelectItem value="WENT_DARK">Went Dark</SelectItem>
-                      <SelectItem value="EARLY_PAY_DISCOUNT">Early Pay Discount</SelectItem>
-                      <SelectItem value="UNKNOWN">Unknown</SelectItem>
+                      <SelectItem value="CHARGEBACK">Chargeback</SelectItem>
+                      <SelectItem value="DEFAULTED">Defaulted</SelectItem>
+                      <SelectItem value="DECLINED">Declined</SelectItem>
+                      <SelectItem value="DUPLICATE">Duplicate</SelectItem>
+                      <SelectItem value="FAILED_PAYMENT">Failed Payment</SelectItem>
+                      <SelectItem value="IN_COLLECTIONS">In Collections</SelectItem>
+                      <SelectItem value="IN_COLLECTIONS_PAUSED_PAYMENT">In Collections Paused Payment</SelectItem>
+                      <SelectItem value="IN_COLLECTIONS_PENDING_PAYMENT">In Collections Pending Payment</SelectItem>
+                      <SelectItem value="PAID">Paid</SelectItem>
                       <SelectItem value="REQUESTING_CANCELLATION">Requesting Cancellation</SelectItem>
+                      <SelectItem value="UNKNOWN">Unknown</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

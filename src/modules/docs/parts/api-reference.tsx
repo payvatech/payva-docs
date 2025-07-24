@@ -88,14 +88,14 @@ const CheckoutAPIReference: React.FC = () => {
   -d '{ "url": "https://your.site/webhook-endpoint", "type": "PAYMENT_SUCCESS" }'`}
         />
 
-        <h3 className="text-xl font-medium text-payva-purple-700 mt-6 mb-2">POST /checkout/platform/webhooks/trigger</h3>
+        {/* <h3 className="text-xl font-medium text-payva-purple-700 mt-6 mb-2">POST /checkout/platform/webhooks/trigger</h3>
         <p className="text-base text-nuetral-700 mb-2">Manually trigger all configured webhooks.</p>
         <CodeBlock
           filename="POST /checkout/platform/webhooks/trigger"
           language="bash"
           code={`curl -X POST https://api.sandbox.payva.com/checkout/platform/webhooks/trigger \
   -H "x-api-key: ${token}"`}
-        />
+        /> */}
       </section>
     </article>
   );
