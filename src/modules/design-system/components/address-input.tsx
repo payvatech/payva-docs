@@ -43,7 +43,7 @@ const AddressInputField: React.FC<AddressInputFieldProps> = ({ field, uniqueId }
       }
       const script = document.createElement('script')
       script.src =
-        'https://maps.googleapis.com/maps/api/js?key=AIzaSyAZtBDpGzAhGKF8FZuMDwFrdaMG8ad-frc&libraries=places'
+        ''
       script.async = true
       script.defer = true
       script.onload = initAutocomplete
