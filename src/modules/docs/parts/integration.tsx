@@ -54,16 +54,16 @@ const WEBHOOKS = [
     "order_id": "order_12345",
     "status": "ACTIVE",
     "event_date": "2025-07-21T15:30:00.000Z",
-    "sales_tax": "400",
-    "total_before_sales_tax": "9500",
+    "sales_tax": "600",
+    "total_before_sales_tax": "8000",
     "merchant_id": "merchant_67890",
     "plan": {
-      "period_payment_amount": "100",
+      "period_payment_amount": "949.83",
       "payment_frequency": "MONTHLY",
       "number_of_payments": "12",
-      "total_amount": "1200"
+      "total_amount": "11398.01"
     }
-  }`,
+}`,
   },
    {
     title: '🚫 Customer Application Declined',
