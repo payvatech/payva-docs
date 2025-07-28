@@ -432,17 +432,17 @@ const Integration: React.FC = () => {
           filename="app.tsx"
           language="tsx"
           code={`import { useEffect, useRef } from 'react';
-import Payva from '@payva/payva-js-sdk';
 
 export default function App() {
-  const sdk = useRef<Payva>();
+  const sdk = useRef<null>();
 
   useEffect(() => {
     if (!sdk.current) {
-      sdk.current = new Payva();
-      sdk.current.on('checkoutSuccess', () => alert('✅ Success'));
-      sdk.current.on('checkoutFailure', () => alert('❌ Failed'));
-      sdk.current.on('checkoutClose', () => alert('✖️ Closed'));
+      sdk.current = new window.Payva();
+      sdk.current.on('checkoutSuccess', () => alert("✅ Checkout completed!"));
+      sdk.current.on('checkoutSuccessClose', () => alert("🔹 Checkout successful and modal closed."))
+      sdk.current.on('checkoutFailure', () => alert("❌ Checkout failed!"));
+      sdk.current.on('checkoutClose', () => alert("🔹 Checkout modal closed."));
     }
   }, []);
 
