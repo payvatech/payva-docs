@@ -1,15 +1,23 @@
 // /parts/Integration.tsx
 import React, { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { CodeBlock } from './code-block'
-import MockWebhookButton from '../parts/mock-webhook-button'
-import { useApiToken } from './api-token-context'
+import { set } from 'date-fns'
+import { to } from 'react-spring'
+
+import { PlatformWebhooksType } from '@/modules/api/generated/graphql'
 import { Button } from '@/modules/design-system/components/button'
 import { Input } from '@/modules/design-system/components/input'
-import { to } from 'react-spring'
-import { set } from 'date-fns'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/modules/design-system/components/select'
-import { PlatformWebhooksType } from '@/modules/api/generated/graphql'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/modules/design-system/components/select'
+
+import MockWebhookButton from '../parts/mock-webhook-button'
+import { useApiToken } from './api-token-context'
+import { CodeBlock } from './code-block'
 
 // Smooth‐scroll to section on hash change
 export function useScrollToHash(offset = 16) {
@@ -39,15 +47,18 @@ export const CONTRACT_STATUS = {
   PAID: 'PAID',
   REQUESTING_CANCELLATION: 'REQUESTING_CANCELLATION',
   UNKNOWN: 'UNKNOWN',
-} as const;
+  CLAWBACK: 'CLAWBCACK',
+} as const
 
-export type ContractStatus = typeof CONTRACT_STATUS[keyof typeof CONTRACT_STATUS];
+export type ContractStatus =
+  (typeof CONTRACT_STATUS)[keyof typeof CONTRACT_STATUS]
 
 const WEBHOOKS = [
   {
     title: '🛒 New Purchase',
     event: 'NEW_PURCHASE' as const,
-    description: 'Triggered when a new purchase is completed and the contract becomes active.',
+    description:
+      'Triggered when a new purchase is completed and the contract becomes active.',
     sample: `{
     "event_type": "NEW_PURCHASE",
     "checkout_id": "12345",
@@ -65,10 +76,11 @@ const WEBHOOKS = [
     }
 }`,
   },
-   {
+  {
     title: '🚫 Customer Application Declined',
     event: 'APPLICATION_DECLINED' as const,
-    description: 'Triggered when a customers application for a payment plan is declined.',
+    description:
+      'Triggered when a customers application for a payment plan is declined.',
     sample: `{
     "event_type": "APPLICATION_DECLINED",
     "merchant_id": "merchant_67890",
@@ -77,7 +89,7 @@ const WEBHOOKS = [
     "order_id": "order_12345",
     "platform_id": "platform_id_value",
     "platform_url": "https://platform.url"
-  }`
+  }`,
   },
   {
     title: '💳 Payment Success',
@@ -122,9 +134,24 @@ const WEBHOOKS = [
 }`,
   },
   {
+    title: '❗ Clawback',
+    event: 'CLAWBACK' as const,
+    description: 'Triggered when a clawback is issued against the merchant.',
+    sample: `{
+      "event_type": "CLAWBACK",
+      "order_id": "order_12345",
+      "checkout_id": "12345",
+      "payment_amount": "9500",
+      "payment_date": "2025-07-21T15:30:00.000Z",
+      "transaction_id": "mock_transaction_id-abc123",
+      "merchant_id": "merchant_67890"
+    }`,
+  },
+  {
     title: '🔄 Contract Status Change',
     event: 'CONTRACT_STATUS_CHANGE' as const,
-    description: 'Emitted when a contract’s status changes (e.g. funded, paid off).',
+    description:
+      'Emitted when a contract’s status changes (e.g. funded, paid off).',
     sample: `{
   "event_type": "CONTRACT_STATUS_CHANGE",
   "event_date": "2025-07-21T15:30:00.000Z",
@@ -132,7 +159,9 @@ const WEBHOOKS = [
   "checkout_id": "12345",
   "plan_id": "1",
   "old_status": "PENDING",
-  "status": ${Object.values(CONTRACT_STATUS).map(status => `"${status}"`).join(' | ')},
+  "status": ${Object.values(CONTRACT_STATUS)
+    .map((status) => `"${status}"`)
+    .join(' | ')},
   "merchant_id": "merchant_67890"
 }`,
   },
@@ -150,11 +179,9 @@ const WEBHOOKS = [
   "level": "Premium"
 }`,
   },
- 
-  
-];
+]
 
-type WebhookEvent = typeof WEBHOOKS[number]['event']
+type WebhookEvent = (typeof WEBHOOKS)[number]['event']
 
 // Flip-card component
 const WebhookCard: React.FC<{
@@ -172,23 +199,29 @@ const WebhookCard: React.FC<{
   const { token, setToken } = useApiToken()
 
   const hasRequiredFields = () => {
-    if (event === 'PAYMENT_SUCCESS' || event === 'PAYMENT_FAILED' || event === 'PAYOUT') {
-      return (!!orderId && orderId != '') && (!!paymentAmount && paymentAmount != '')
-    } else if ( event === 'CONTRACT_STATUS_CHANGE') {
-      return (!!orderId && orderId != '') && (!!status && status != '')
+    if (
+      event === 'PAYMENT_SUCCESS' ||
+      event === 'PAYMENT_FAILED' ||
+      event === 'PAYOUT'
+    ) {
+      return (
+        !!orderId && orderId != '' && !!paymentAmount && paymentAmount != ''
+      )
+    } else if (event === 'CONTRACT_STATUS_CHANGE') {
+      return !!orderId && orderId != '' && !!status && status != ''
     } else if (event === 'MERCHANT_STATUS') {
-      return (!!merchantId && merchantId != '') && (!!status && status != '')
+      return !!merchantId && merchantId != '' && !!status && status != ''
     }
     return true
   }
 
   return (
     <div
-      className="relative w-full overflow-hidden min-h-[450px]"
+      className="relative min-h-[450px] w-full overflow-hidden"
       style={{ perspective: 1000 }}
     >
       <div
-        className="w-full h-full transition-transform duration-500"
+        className="h-full w-full transition-transform duration-500"
         style={{
           transformStyle: 'preserve-3d',
           transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
@@ -196,29 +229,34 @@ const WebhookCard: React.FC<{
       >
         {/* Front Side */}
         <div
-          className="absolute inset-0 bg-white rounded-2xl p-6  flex flex-col"
+          className="absolute inset-0 flex flex-col rounded-2xl bg-white p-6"
           style={{ backfaceVisibility: 'hidden' }}
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-payva-purple-700">{title}</h3>
-            {(event !== 'NEW_PURCHASE' && event !== 'APPLICATION_DECLINED') && (
-              <Button
-                onClick={() => setFlipped(true)}
-                variant="outline"
-              >
+            <h3 className="text-xl font-semibold text-payva-purple-700">
+              {title}
+            </h3>
+            {event !== 'NEW_PURCHASE' && event !== 'APPLICATION_DECLINED' && (
+              <Button onClick={() => setFlipped(true)} variant="outline">
                 Test
               </Button>
             )}
           </div>
-          <p className="text-base text-nuetral-700 my-4 flex-1">{description}</p>
-          <div className="flex-1 overflow-auto  min-h-[300px] ">
-            <CodeBlock filename="payload.json" language="json" code={sample.trim()} />
+          <p className="my-4 flex-1 text-base text-nuetral-700">
+            {description}
+          </p>
+          <div className="min-h-[300px] flex-1 overflow-auto">
+            <CodeBlock
+              filename="payload.json"
+              language="json"
+              code={sample.trim()}
+            />
           </div>
         </div>
 
         {/* Back Side */}
         <div
-          className="absolute inset-0 bg-white rounded-2xl p-6  flex flex-col gap-6"
+          className="absolute inset-0 flex flex-col gap-6 rounded-2xl bg-white p-6"
           style={{
             backfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
@@ -226,79 +264,118 @@ const WebhookCard: React.FC<{
         >
           <Button
             onClick={() => setFlipped(false)}
-            className='w-fit self-end'
+            className="w-fit self-end"
             variant={'outline'}
           >
             Back
           </Button>
           <div className="space-y-4">
-            {(event === 'PAYMENT_SUCCESS' || event === 'PAYMENT_FAILED' || event === 'PAYOUT' || event === 'CONTRACT_STATUS_CHANGE' || event === 'MERCHANT_STATUS') ? (
+            {event === 'PAYMENT_SUCCESS' ||
+            event === 'PAYMENT_FAILED' ||
+            event === 'PAYOUT' ||
+            event === 'CONTRACT_STATUS_CHANGE' ||
+            event === 'MERCHANT_STATUS' ||
+            event === 'CLAWBACK' ? (
               <>
-                {(event === 'PAYMENT_SUCCESS' || event === 'PAYMENT_FAILED' || event === 'PAYOUT' || event === 'CONTRACT_STATUS_CHANGE' ) &&<Input
-                  type="text"
-                  placeholder="Order ID"
-                  value={orderId}
-                  onChange={(e) => setOrderId(e.target.value)}
-                  className="w-full border border-nuetral-300 p-2 rounded"
-                />}
-                {(event === 'PAYMENT_SUCCESS' || event === 'PAYMENT_FAILED' || event === 'PAYOUT') && (
+                {(event === 'PAYMENT_SUCCESS' ||
+                  event === 'PAYMENT_FAILED' ||
+                  event === 'PAYOUT' ||
+                  event === 'CONTRACT_STATUS_CHANGE' ||
+                  event === 'CLAWBACK') && (
+                  <Input
+                    type="text"
+                    placeholder="Order ID"
+                    value={orderId}
+                    onChange={(e) => setOrderId(e.target.value)}
+                    className="w-full rounded border border-nuetral-300 p-2"
+                  />
+                )}
+                {(event === 'PAYMENT_SUCCESS' ||
+                  event === 'PAYMENT_FAILED' ||
+                  event === 'PAYOUT') && (
                   <Input
                     type="number"
                     placeholder="Payment Amount"
                     value={paymentAmount}
                     onChange={(e) => setPaymentAmount(e.target.value)}
-                    className="w-full border border-nuetral-300 p-2 rounded"
-                />)}
-
-                {(event === 'MERCHANT_STATUS') && (
-                  <>
-                  <Input
-                    type="text"
-                    placeholder="Merchant ID"
-                    value={merchantId}
-                    onChange={(e) => setMerchantId(e.target.value)}
-                    className="w-full border border-nuetral-300 p-2 rounded"
+                    className="w-full rounded border border-nuetral-300 p-2"
                   />
-                  <Select
-                    value={status}
-                    onValueChange={(value) => setStatus(value)}
-                  >
-                    <SelectTrigger className="w-full border border-nuetral-300 p-2 rounded">
-                      <SelectValue placeholder="Select Merchant Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="APPROVED">Approved</SelectItem>
-                      <SelectItem value="SUSPENDED">Suspended</SelectItem>
-                      <SelectItem value="DECLINED">Declined</SelectItem>
-                      <SelectItem value="APPLICATION_STARTED">Application Started</SelectItem>
-                      <SelectItem value="APPLICATION_SUBMITTED">Application Submitted</SelectItem>
-                    </SelectContent>
-                  </Select> 
+                )}
+                {event === 'CLAWBACK' && (
+                  <Input
+                    type="number"
+                    placeholder="Clawback Amount"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    className="w-full rounded border border-nuetral-300 p-2"
+                  />
+                )}
+
+                {event === 'MERCHANT_STATUS' && (
+                  <>
+                    <Input
+                      type="text"
+                      placeholder="Merchant ID"
+                      value={merchantId}
+                      onChange={(e) => setMerchantId(e.target.value)}
+                      className="w-full rounded border border-nuetral-300 p-2"
+                    />
+                    <Select
+                      value={status}
+                      onValueChange={(value) => setStatus(value)}
+                    >
+                      <SelectTrigger className="w-full rounded border border-nuetral-300 p-2">
+                        <SelectValue placeholder="Select Merchant Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="APPROVED">Approved</SelectItem>
+                        <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                        <SelectItem value="DECLINED">Declined</SelectItem>
+                        <SelectItem value="APPLICATION_STARTED">
+                          Application Started
+                        </SelectItem>
+                        <SelectItem value="APPLICATION_SUBMITTED">
+                          Application Submitted
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </>
                 )}
 
-                { event === 'CONTRACT_STATUS_CHANGE' && (
+                {event === 'CONTRACT_STATUS_CHANGE' && (
                   <Select
                     value={status}
                     onValueChange={(value) => setStatus(value)}
                   >
-                    <SelectTrigger className="w-full border border-nuetral-300 p-2 rounded">
+                    <SelectTrigger className="w-full rounded border border-nuetral-300 p-2">
                       <SelectValue placeholder="Select Contract Status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ACTIVE">Active</SelectItem>
-                      <SelectItem value="ACTIVE_MODIFIED_PAYMENT">Active Modified Payment</SelectItem>
+                      <SelectItem value="ACTIVE_MODIFIED_PAYMENT">
+                        Active Modified Payment
+                      </SelectItem>
                       <SelectItem value="CANCELED">Canceled</SelectItem>
                       <SelectItem value="CHARGEBACK">Chargeback</SelectItem>
                       <SelectItem value="DEFAULTED">Defaulted</SelectItem>
                       <SelectItem value="DECLINED">Declined</SelectItem>
                       <SelectItem value="DUPLICATE">Duplicate</SelectItem>
-                      <SelectItem value="FAILED_PAYMENT">Failed Payment</SelectItem>
-                      <SelectItem value="IN_COLLECTIONS">In Collections</SelectItem>
-                      <SelectItem value="IN_COLLECTIONS_PAUSED_PAYMENT">In Collections Paused Payment</SelectItem>
-                      <SelectItem value="IN_COLLECTIONS_PENDING_PAYMENT">In Collections Pending Payment</SelectItem>
+                      <SelectItem value="FAILED_PAYMENT">
+                        Failed Payment
+                      </SelectItem>
+                      <SelectItem value="IN_COLLECTIONS">
+                        In Collections
+                      </SelectItem>
+                      <SelectItem value="IN_COLLECTIONS_PAUSED_PAYMENT">
+                        In Collections Paused Payment
+                      </SelectItem>
+                      <SelectItem value="IN_COLLECTIONS_PENDING_PAYMENT">
+                        In Collections Pending Payment
+                      </SelectItem>
                       <SelectItem value="PAID">Paid</SelectItem>
-                      <SelectItem value="REQUESTING_CANCELLATION">Requesting Cancellation</SelectItem>
+                      <SelectItem value="REQUESTING_CANCELLATION">
+                        Requesting Cancellation
+                      </SelectItem>
                       <SelectItem value="UNKNOWN">Unknown</SelectItem>
                     </SelectContent>
                   </Select>
@@ -315,10 +392,12 @@ const WebhookCard: React.FC<{
                 />
               </>
             ) : (
-              <MockWebhookButton webhookType={event as PlatformWebhooksType} label={`Send ${title}`} />
+              <MockWebhookButton
+                webhookType={event as PlatformWebhooksType}
+                label={`Send ${title}`}
+              />
             )}
           </div>
-          
         </div>
       </div>
     </div>
@@ -330,47 +409,61 @@ const Integration: React.FC = () => {
   useScrollToHash()
   const sdkRef = useRef<any>(null)
   const { token, setToken, clearToken } = useApiToken()
-  
+
   return (
-    <article className="mx-auto py-12 px-4 max-w-5xl">
+    <article className="mx-auto max-w-5xl px-4 py-12">
       {/* Intro */}
       <section id="intro" className="mb-16">
-        <h1 className="text-4xl font-bold text-payva-purple-900 mb-4">👋 Welcome!</h1>
-        <p className="text-lg text-nuetral-700 mb-6">
-          We&apos;re rolling out our integrations. If you have questions or need custom
-          support,{' '}
+        <h1 className="mb-4 text-4xl font-bold text-payva-purple-900">
+          👋 Welcome!
+        </h1>
+        <p className="mb-6 text-lg text-nuetral-700">
+          We&apos;re rolling out our integrations. If you have questions or need
+          custom support,{' '}
           <a
             href="mailto:support@payva.com"
-            className="text-payva-purple-600 hover:text-payva-purple-500 font-medium"
+            className="font-medium text-payva-purple-600 hover:text-payva-purple-500"
           >
             reach out to us
           </a>
           .
         </p>
-        <h2 className="text-3xl font-semibold text-payva-purple-800 mb-4">Overview</h2>
+        <h2 className="mb-4 text-3xl font-semibold text-payva-purple-800">
+          Overview
+        </h2>
         <Image
           src="/workflow.png"
           alt="Integration workflow"
           width={800}
           height={600}
-          className="rounded-lg  mx-auto"
+          className="mx-auto rounded-lg"
         />
       </section>
 
       {/* Create Checkout */}
       <section id="create-checkout" className="mb-16">
-        <h2 className="text-3xl font-semibold text-payva-purple-800 mb-4">Create a Checkout Token</h2>
-        <p className="text-base text-nuetral-700 mb-6">
-          On your backend, generate a unique checkout token per order. Pass that token
-          into our SDK to spin up the hosted checkout UI.
+        <h2 className="mb-4 text-3xl font-semibold text-payva-purple-800">
+          Create a Checkout Token
+        </h2>
+        <p className="mb-6 text-base text-nuetral-700">
+          On your backend, generate a unique checkout token per order. Pass that
+          token into our SDK to spin up the hosted checkout UI.
         </p>
-        <h3 className="text-xl font-medium text-payva-purple-700 mb-2">Endpoint</h3>
-        <CodeBlock filename="POST /checkout/create" language="bash" code="POST /checkout/create" />
-        <h3 className="text-xl font-medium text-payva-purple-700 mt-6 mb-2">Request Example</h3>
+        <h3 className="mb-2 text-xl font-medium text-payva-purple-700">
+          Endpoint
+        </h3>
         <CodeBlock
-            filename="Request Example (cURL)"
-            language="bash"
-            code={`curl -X POST https://api.sandbox.payva.com/checkout/create \\
+          filename="POST /checkout/create"
+          language="bash"
+          code="POST /checkout/create"
+        />
+        <h3 className="mb-2 mt-6 text-xl font-medium text-payva-purple-700">
+          Request Example
+        </h3>
+        <CodeBlock
+          filename="Request Example (cURL)"
+          language="bash"
+          code={`curl -X POST https://api.sandbox.payva.com/checkout/create \\
   -H "Content-Type: application/json" \\
   -H "x-api-key: ${token}" \\
   -d '{
@@ -395,8 +488,10 @@ const Integration: React.FC = () => {
       }
     ]
   }'`}
-          />
-        <h3 className="text-xl font-medium text-payva-purple-700 mt-6 mb-2">Sample Response</h3>
+        />
+        <h3 className="mb-2 mt-6 text-xl font-medium text-payva-purple-700">
+          Sample Response
+        </h3>
         <CodeBlock
           filename="response.json"
           language="json"
@@ -416,18 +511,24 @@ const Integration: React.FC = () => {
 
       {/* SDK Setup */}
       <section id="javascript-sdk" className="mb-16">
-        <h2 className="text-3xl font-semibold text-payva-purple-800 mb-4">JavaScript SDK</h2>
-        <p className="text-base text-nuetral-700 mb-6">
-          A lightweight client library that opens the Payva checkout in a modal iframe
-          or popup—no heavy deps, just event hooks.
+        <h2 className="mb-4 text-3xl font-semibold text-payva-purple-800">
+          JavaScript SDK
+        </h2>
+        <p className="mb-6 text-base text-nuetral-700">
+          A lightweight client library that opens the Payva checkout in a modal
+          iframe or popup—no heavy deps, just event hooks.
         </p>
-        <h3 className="text-xl font-medium text-payva-purple-700 mb-2">Include the SDK</h3>
+        <h3 className="mb-2 text-xl font-medium text-payva-purple-700">
+          Include the SDK
+        </h3>
         <CodeBlock
           filename="index.html"
           language="html"
           code={`<script src="https://checkout-sdk.payva.com/payva-sdk.min.js"></script>`}
         />
-        <h3 className="text-xl font-medium text-payva-purple-700 mt-6 mb-2">Initialize &amp; Listen</h3>
+        <h3 className="mb-2 mt-6 text-xl font-medium text-payva-purple-700">
+          Initialize &amp; Listen
+        </h3>
         <CodeBlock
           filename="app.tsx"
           language="tsx"
@@ -453,10 +554,12 @@ export default function App() {
 
       {/* Trigger Checkout */}
       <section id="trigger-checkout" className="mb-16">
-        <h2 className="text-3xl font-semibold text-payva-purple-800 mb-4">Trigger a Checkout</h2>
-        <p className="text-base text-nuetral-700 mb-6">
+        <h2 className="mb-4 text-3xl font-semibold text-payva-purple-800">
+          Trigger a Checkout
+        </h2>
+        <p className="mb-6 text-base text-nuetral-700">
           Build your order object and call{' '}
-          <code className="bg-nuetral-100 px-1 rounded text-payva-purple-700">
+          <code className="rounded bg-nuetral-100 px-1 text-payva-purple-700">
             sdk.current.initiateCheckout(order)
           </code>
           .
@@ -473,13 +576,15 @@ export default function App() {
 
       {/* Webhooks */}
       <section id="webhooks" className="mb-16">
-        <h2 className="text-3xl font-semibold text-payva-purple-800 mb-4">Handle Webhooks</h2>
-        <p className="text-base text-nuetral-700 mb-6">
-          Webhooks let you react in real-time to key events. Configure your endpoint to receive:
+        <h2 className="mb-4 text-3xl font-semibold text-payva-purple-800">
+          Handle Webhooks
+        </h2>
+        <p className="mb-6 text-base text-nuetral-700">
+          Webhooks let you react in real-time to key events. Configure your
+          endpoint to receive:
         </p>
 
-        
-        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
           {WEBHOOKS.map((w) => (
             <WebhookCard
               key={w.event}
